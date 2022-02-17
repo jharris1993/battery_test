@@ -14,16 +14,20 @@ mybot = EasyGoPiGo3()
 count = 0
 num_tests_per_cycle = 10  #  Number of tests to run per test cycle
 num_test_cyckes = 4
-pause_value = 0.35
+pause_value = 0.20
 decimal_precision = 2
 measured_5v = 0.00
 measured_battery_voltage = 0.00
+measured_vcc = 0.00
 battery_voltage_sum = 0.00
 five_v_sum = 0.00
+vcc_voltage_sum = 0.00
 average_battery_voltage = 0.00
 average_5v = 0.00
+average_vcc = 0.00
 cumulative_5v_average = 0.00
 cumulative_battery_average = 0.00
+cumulative_vcc_average = 0.00
 
 def vround(x, decimal_precision=2):
 
@@ -61,9 +65,9 @@ def open_file():
 
 def write_data(file_handle):
     print("\nThat's All Folks!\n")
-    data = [str(count), " measurements were taken every ", str(pause_value), " seconds.\n The average battery voltage was ", str(average_battery_voltage), "\nThe average 5v VCC rail was ", str(average_5v), ")\n\n"]
+    data = [str(count), " measurements were taken every ", str(pause_value), " seconds.\n The average battery voltage is ", str(average_battery_voltage), "\nThe average 5v power rail is ", str(average_5v), ")\n\n"]
     file_handle.writelines(data)
-    print(str(count), " measurements were taken every ", str(pause_value), " seconds.\n The average battery voltage was ", str(average_battery_voltage), "\nThe average 5v VCC rail was ", str(average_5v), ")\n\n")
+    print(str(count), " measurements were taken every ", str(pause_value), " seconds.\n The average battery voltage is ", str(average_battery_voltage), "\nThe average 5v power rail is ", str(average_5v), ")\n\n")
     file_handle.close()
 
 
@@ -72,24 +76,32 @@ def run_test():
     global count
     global measured_battery_voltage
     global measured_5v
+    global measured_vcc
     global five_v_sum
     global battery_voltage_sum
+    global vcc_voltage_sum
     global average_battery_voltage
     global average_5v
+    global average_vcc
     global cumulative_5v_average
     global cumulative_battery_average
+    global cumulative_vcc_average
 
     battery_voltage_sum = 0
     five_v_sum = 0
+    vcc_voltage_sum = 0
     while count < num_tests_per_cycle:
         measured_battery_voltage =  vround(mybot.get_voltage_battery(), decimal_precision)
+        measured_vcc = vround(mybot.get_voltage_vcc(), decimal_precision)
         measured_5v = vround(mybot.get_voltage_5v(), decimal_precision)
         battery_voltage_sum += measured_battery_voltage
+        vcc_voltage_sum += measured_vcc
         five_v_sum += measured_5v
         count += 1
         sleep(pause_value)
     average_5v = (vround(five_v_sum/count, decimal_precision))
     average_battery_voltage = (vround(battery_voltage_sum/count, decimal_precision))
+    average_vcc = (vround(vcc_voltage_sum/count, decimal_precision))
     return()
 
 if __name__ == "__main__":
@@ -100,20 +112,26 @@ if __name__ == "__main__":
         try:
 #            f = open_file()
             count = 0
-            print("Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of ", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds")
-            data = ["Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of ", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds\n"]
+            print("Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of:", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds")
+            data = ["Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of: ", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds\n"]
             f.writelines(data)
             average_5v = 0.00
             average_battery_voltage = 0.00
+            average_vcc = 0.00
             run_test()
-            print("The average battery voltage for this test cycle was ", str(average_battery_voltage), "volts")
-            print("The average 5v VCC voltage for this test cycle was ", str(average_5v), "volts\n")
-            data = ["The average battery voltage for this test cycle was ", str(average_battery_voltage), "volts\n"]
+            print("The average battery voltage for this test cycle is:", str(average_battery_voltage), "volts")
+            print("The average VCC power voltage for this test cycles is:", str(average_vcc), "volts")
+            print("The average 5v power voltage for this test cycle is:", str(average_5v), "volts\n")
+            data = ["The average battery voltage for this test cycle is: ", str(average_battery_voltage), " volts\n"]
             f.writelines(data)
-            data = ["The average 5v VCC voltage for this test cycle was ", str(average_5v), "volts\n\n"]
+            data = ["The average VCC power voltage for this test cycles is: ", str(average_vcc), " volts\n\n"]
             f.writelines(data)
+            data = ["The average 5v power voltage for this test cycle is: ", str(average_5v), " volts\n"]
+            f.writelines(data)
+
             cumulative_5v_average += average_5v
             cumulative_battery_average += average_battery_voltage
+            cumulative_vcc_average += average_vcc
 
         except KeyboardInterrupt:
             # file1 = open("./voltage_test.txt", "a")
@@ -123,15 +141,26 @@ if __name__ == "__main__":
         else:
             x += 1
 
-    print("===================================\nThe 5v average of all the test cycles was ", str((vround(cumulative_5v_average/x))))
-    print("The battery voltage average of all the test cycles was ", str((vround(cumulative_battery_average/x))), "\n===================================\n\n") 
+    # calculate cumulative averages
+    cumulative_5v_average = vround(cumulative_5v_average/x, decimal_precision)
+    cumulative_battery_average = vround(cumulative_battery_average/x, decimal_precision)
+    cumulative_vcc_average = vround(cumulative_vcc_average/x, decimal_precision)
+
+
+    print("===================================")
+    print("The battery voltage average of all the test cycles is:", str(cumulative_battery_average), "volts")
+    print("The VCC voltage average of all the test cycles is:", str(cumulative_vcc_average), "volts")
+    print("The 5v average of all the test cycles is:", str(cumulative_5v_average), "volts")
+    print("===================================\n\n") 
 #    f = open_file()
     data = ["===================================\n"]
     f.writelines(data)
-    data = ["The 5v average of all the test cycles was ", str((vround(cumulative_5v_average/x))), "\n"]
+    data = ["The battery voltage average of all the test cycles is: ", str(cumulative_battery_average), " volts\n"]
     f.writelines(data)
-    data = ["The battery voltage average of all the test cycles was ", str((vround(cumulative_battery_average/x))), "\n"]
+    data = ["The VCC voltage average of all the test cycles is: ", str(cumulative_vcc_average), " volts\n"]
     f.writelines(data)
-    data = ["===================================\n"]
+    data = ["The 5v average of all the test cycles is: ", str(cumulative_5v_average), " volts\n"]
+    f.writelines(data)
+    data = ["===================================\n\n"]
     f.writelines(data)
     f.close()
