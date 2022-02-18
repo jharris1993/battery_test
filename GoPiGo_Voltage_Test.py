@@ -10,12 +10,14 @@ from easygopigo3 import EasyGoPiGo3
 
 mybot = EasyGoPiGo3()
 
+#  Set parametric values
+num_tests_per_cycle = 10  #  Number of tests to run per test cycle
+num_test_cyckes = 4  #  How many test cycles do you want to run?
+pause_value = 0.20  #  How long to wait between individual tests per cycle
+decimal_precision = 2  #  The degree of decimal precision to report (anythng greater than 2 will show a lot of noise)
+
 #  Set initial values
 count = 0
-num_tests_per_cycle = 10  #  Number of tests to run per test cycle
-num_test_cyckes = 4
-pause_value = 0.20
-decimal_precision = 2
 measured_5v = 0.00
 measured_battery_voltage = 0.00
 measured_vcc = 0.00
@@ -36,7 +38,7 @@ def vround(x, decimal_precision=2):
 #  "x" is the value to be rounded using "standard" 4/5 rounding rules
 #  always rounding away from zero regardless of sign
 #
-#  "decimal_precision" is the number of decimal places to round to
+#  "decimal_precision" is the number of decimal places to round to which defaults to 2 if not specified.
 #
     if decimal_precision < 0:
         decimal_precision = 0
@@ -57,8 +59,6 @@ def vround(x, decimal_precision=2):
         return (val)
 
 def open_file():
-    # file1 = open("./voltage_test.txt", "a")
-#    file1 = open(".results/GoPiGo_Voltage_test/GoPiGo_Voltage_test-"+str(pause_value)+"sec.txt", "a")    return (file1)
     file1 = open("./results/voltage_test-"+str(pause_value)+"sec.txt", "a")
     return(file1)
 
@@ -110,7 +110,6 @@ if __name__ == "__main__":
     f = open_file()
     while x < num_test_cyckes:
         try:
-#            f = open_file()
             count = 0
             print("Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of:", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds")
             data = ["Test Cycle ", str(x+1), " of ", str(num_test_cyckes), " which consists of: ", str(num_tests_per_cycle), " tests every ", str(pause_value), " seconds\n"]
@@ -134,7 +133,6 @@ if __name__ == "__main__":
             cumulative_vcc_average += average_vcc
 
         except KeyboardInterrupt:
-            # file1 = open("./voltage_test.txt", "a")
             print("keyboard exception")
             write_data(f)
             sys.exit(0)
